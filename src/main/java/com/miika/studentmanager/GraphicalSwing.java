@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.*;
+import java.util.Objects;
 
 public class GraphicalSwing extends JFrame {
     private JFrame mainFrame;
@@ -16,20 +17,22 @@ public class GraphicalSwing extends JFrame {
     private JPanel buttonPanel;
     private JPanel graphPanel;
     private JPanel newStudentPanel;
+    JLabel infoLabel = new JLabel("", JLabel.CENTER);
+    DefaultTableModel tableModel = new DefaultTableModel();
+    JTable table = new JTable(tableModel);
+    JScrollPane tableScroll = (new JScrollPane(table));
+
 
     // alustetaan GUI ja lisätään elementit
     GraphicalSwing() throws SQLException {
         prepareGUI();
         prepareElements();
-    }
-
-    GraphicalSwing(int i) {
-
+        //createTable();
     }
 
     private void prepareGUI() {
         mainFrame = new JFrame("Student Manager");
-        mainFrame.setSize(600,600);
+        mainFrame.setSize(800,600);
         mainFrame.setLayout(new FlowLayout());
 
         mainFrame.addWindowListener(new WindowAdapter() {
@@ -62,14 +65,72 @@ public class GraphicalSwing extends JFrame {
         String[] options = {"students","course","course_implementation","credit","student_degree"};
         JComboBox comboBox = new JComboBox(options);
 
-        DefaultTableModel tableModel = new DefaultTableModel();
-        final JTable table = new JTable(tableModel);
-        JScrollPane tableScroll = (new JScrollPane(table));
+        ApplicationMain a = new ApplicationMain();
+        Connection conn = a.connect();
 
+        JButton showButton = new JButton("Show");
+        showButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    refreshTable();
+                    createTable(Objects.requireNonNull(comboBox.getSelectedItem()).toString());
+                    createInfoLabel(Objects.requireNonNull(comboBox.getSelectedItem()).toString());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        JButton saveButton = new JButton("Save to file");
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+
+            }
+        });
+
+
+
+        JTextField newStudentText = new JTextField();
+
+        JButton newStudentButton = new JButton("Add new student");
+        newStudentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    String queryNewStudent = "INSERT INTO students (first_name, last_name) VALUES (?,?)";
+                    PreparedStatement statementNewStudent = conn.prepareStatement(queryNewStudent);
+                    String[] i = (String[]) formatInsert(newStudentText.getText());
+                    statementNewStudent.setString(1,i[0]);
+                    statementNewStudent.setString(2,i[1]);
+                    statementNewStudent.executeUpdate();
+                    refreshTable();
+                    createTable(Objects.requireNonNull(comboBox.getSelectedItem()).toString());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        buttonPanel.add(comboBox);
+        buttonPanel.add(showButton);
+        buttonPanel.add(saveButton);
+        newStudentPanel.add(newStudentText);
+        buttonPanel.add(newStudentButton);
+        mainFrame.setVisible(true);
+    }
+
+    public Object[] formatInsert(String text) {
+        Object[] data = text.trim().split("\\s+");
+        return data;
+    }
+
+    public void createTable(String tableName) throws SQLException {
         ApplicationMain a = new ApplicationMain();
         Connection conn = a.connect();
         Statement statement = conn.createStatement();
-        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + comboBox.getSelectedItem());
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
 
         ResultSetMetaData metadata = resultSet.getMetaData();
         int columnCount = metadata.getColumnCount();
@@ -86,73 +147,41 @@ public class GraphicalSwing extends JFrame {
             tableModel.addRow(rowData);
         }
 
-        JLabel label = new JLabel("syötä päivä vvvv-pp-kk, \njos tyhjä ohjelma muodostaa kaavion kaikista päivistä"
-                ,JLabel.CENTER);
-        JTextField dateTxt = new JTextField();
-
-        JButton showButton = new JButton("Show");
-        showButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                tableModel.fireTableStructureChanged();
-            }
-        });
-
-        JButton saveButton = new JButton("Save to file");
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-
-            }
-        });
-
-        JButton readButton = new JButton("Read from file");
-        readButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-
-            }
-        });
-
-        JLabel newStudentLabel = new JLabel("Enter firstname and lastname", JLabel.CENTER);
-        JTextField newStudentText = new JTextField();
-
-        JButton newStudentButton = new JButton("Add new student");
-        newStudentButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                try {
-                    String queryNewStudent = "INSERT INTO students (first_name, last_name) VALUES (?,?)";
-                    PreparedStatement statementNewStudent = conn.prepareStatement(queryNewStudent);
-                    String[] i = (String[]) formatInsert(newStudentText.getText());
-                    statementNewStudent.setString(1,i[0]);
-                    statementNewStudent.setString(2,i[1]);
-                    statementNewStudent.executeUpdate();
-                    tableModel.addRow(formatInsert(newStudentText.getText()));
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-
-
-
-
         tablePanel.add(tableScroll);
-        graphPanel.add(label);
-        graphPanel.add(dateTxt);
-        buttonPanel.add(comboBox);
-        buttonPanel.add(showButton);
-        buttonPanel.add(saveButton);
-        buttonPanel.add(readButton);
-        newStudentPanel.add(newStudentLabel);
-        newStudentPanel.add(newStudentText);
-        buttonPanel.add(newStudentButton);
         mainFrame.setVisible(true);
     }
 
-    public Object[] formatInsert(String text) {
-        Object[] data = text.trim().split("\\s+");
-        return data;
+    public void refreshTable() {
+        tablePanel.remove(tableScroll);
+        tableModel.setRowCount(0);
+        tableModel.setColumnCount(0);
     }
+
+    public void createInfoLabel(String tableName) {
+        switch (tableName) {
+            case "students":
+                infoLabel.setText("Enter firstname and lastname: ");
+                break;
+            case "course":
+                infoLabel.setText("Enter a course name: ");
+                break;
+            case "course_implementation":
+                infoLabel.setText("Enter start date, end-date and points: ");
+                break;
+            case "credit":
+                infoLabel.setText("Enter teacher, points and passed date: ");
+                break;
+            case "student_degree":
+                infoLabel.setText("Enter degree, started and completed: ");
+                break;
+            default:
+                ErrorDialog n = new ErrorDialog("Invalid Option");
+                break;
+        }
+
+        //JLabel infoLabel = new JLabel("Enter firstname and lastname", JLabel.CENTER);
+        newStudentPanel.add(infoLabel);
+        mainFrame.setVisible(true);
+    }
+
 }
