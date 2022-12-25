@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.sql.SQLException;
 
 public class LoginSwing {
     private JFrame mainFrame;
@@ -51,7 +52,11 @@ public class LoginSwing {
             @Override
             public void actionPerformed(ActionEvent e) {
                 ApplicationMain a = new ApplicationMain();
-                a.auth(usernameTxt.getText(), String.valueOf(passwordTxt.getPassword()));
+                try {
+                    a.auth(usernameTxt.getText(), String.valueOf(passwordTxt.getPassword()));
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -60,7 +65,7 @@ public class LoginSwing {
             @Override
             public void actionPerformed(ActionEvent e) {
                 ApplicationMain a = new ApplicationMain();
-                a.auth(usernameTxt.getText(), String.valueOf(passwordTxt.getPassword()));
+                //a.auth(usernameTxt.getText(), String.valueOf(passwordTxt.getPassword()));
             }
         });
 
