@@ -65,7 +65,11 @@ public class LoginSwing {
             @Override
             public void actionPerformed(ActionEvent e) {
                 ApplicationMain a = new ApplicationMain();
-                //a.auth(usernameTxt.getText(), String.valueOf(passwordTxt.getPassword()));
+                try {
+                    a.signUp(usernameTxt.getText(), String.valueOf(passwordTxt.getPassword()));
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -75,7 +79,7 @@ public class LoginSwing {
         textPanel.add(passwordTxt);
         buttonPanel.add(loginButton);
         buttonPanel.add(signupButton);
-
+        mainFrame.setVisible(true);
     }
 
 }

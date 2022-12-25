@@ -1,18 +1,6 @@
 package com.miika.studentmanager;
 
-import org.hibernate.annotations.common.util.impl.Log;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.swing.*;
 import java.sql.*;
-import java.util.List;
 
 public class ApplicationMain {
 
@@ -21,14 +9,16 @@ public class ApplicationMain {
     public static void main(String[] args) {
         // TODO: login system
         LoginSwing login = new LoginSwing();
+    }
 
-        //GraphicalSwing s = new GraphicalSwing();
-
+    public Connection connect() throws SQLException {
+        conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/students_schema", "root", "password");
+        return conn;
     }
 
     public void auth(String username, String password) throws SQLException {
-        conn = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/students_schema", "root", "password");
+        conn = connect();
 
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT * FROM login");
@@ -44,5 +34,15 @@ public class ApplicationMain {
         }
         conn.close();
 
+    }
+
+    public void signUp(String username, String password) throws SQLException {
+        conn = connect();
+        String queryNewStudent = "INSERT INTO login (username, password) VALUES (?,?)";
+        PreparedStatement newUser = conn.prepareStatement(queryNewStudent);
+        newUser.setString(1,username);
+        newUser.setString(2,password);
+        newUser.executeUpdate();
+        conn.close();
     }
 }
