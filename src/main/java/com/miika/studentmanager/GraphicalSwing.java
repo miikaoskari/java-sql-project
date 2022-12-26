@@ -2,7 +2,6 @@ package com.miika.studentmanager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.xml.transform.Result;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,13 +20,13 @@ public class GraphicalSwing extends JFrame {
     DefaultTableModel tableModel = new DefaultTableModel();
     JTable table = new JTable(tableModel);
     JScrollPane tableScroll = (new JScrollPane(table));
+    JTextField newStudentText = new JTextField();
 
 
-    // alustetaan GUI ja lisätään elementit
     GraphicalSwing() throws SQLException {
         prepareGUI();
         prepareElements();
-        //createTable();
+        createTable("students");
     }
 
     private void prepareGUI() {
@@ -58,7 +57,6 @@ public class GraphicalSwing extends JFrame {
         mainFrame.add(graphPanel);
         mainFrame.add(newStudentPanel);
         mainFrame.setVisible(true);
-
     }
 
     private void prepareElements() throws SQLException {
@@ -82,29 +80,122 @@ public class GraphicalSwing extends JFrame {
             }
         });
 
-        JButton saveButton = new JButton("Save to file");
-        saveButton.addActionListener(new ActionListener() {
+        JButton delButton = new JButton("Delete");
+        delButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    ApplicationMain a = new ApplicationMain();
+                    Connection conn = a.connect();
 
+                    String queryDelStudent = "DELETE FROM students WHERE student_id=?";
+                    String queryDelCourse = "DELETE FROM course WHERE course_id=?";
+                    String queryDelCourseImp = "DELETE FROM course_implementation WHERE course_implementation_id=?";
+                    String queryDelCredit = "DELETE FROM credit WHERE credit_id=?";
+                    String queryDelStudentDeg = "DELETE FROM student_degree WHERE student_degree_id=?";
+
+
+                    String[] i = (String[]) formatInsert(newStudentText.getText());
+
+                    switch (comboBox.getSelectedItem().toString()) {
+                        case "students":
+                            PreparedStatement statementDelStudent = conn.prepareStatement(queryDelStudent);
+                            statementDelStudent.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelStudent.executeUpdate();
+                            break;
+                        case "course":
+                            PreparedStatement statementDelCourse = conn.prepareStatement(queryDelCourse);
+                            statementDelCourse.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelCourse.executeUpdate();
+                            break;
+                        case "course_implementation":
+                            PreparedStatement statementDelCourseImp = conn.prepareStatement(queryDelCourseImp);
+                            statementDelCourseImp.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelCourseImp.executeUpdate();
+                            break;
+                        case "credit":
+                            PreparedStatement statementDelCredit = conn.prepareStatement(queryDelCredit);
+                            statementDelCredit.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelCredit.executeUpdate();
+                            break;
+                        case "student_degree":
+                            PreparedStatement statementDelStudentDeg = conn.prepareStatement(queryDelStudentDeg);
+                            statementDelStudentDeg.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelStudentDeg.executeUpdate();
+                            break;
+                    }
+                    //statementDelStudent.setString(1,comboBox.getSelectedItem().toString());
+                    //statementDelStudent.setString(1,tableModel.getColumnName(0));
+
+
+                    refreshTable();
+                    createTable(Objects.requireNonNull(comboBox.getSelectedItem()).toString());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
-
-
-        JTextField newStudentText = new JTextField();
-
-        JButton newStudentButton = new JButton("Add new student");
+        JButton newStudentButton = new JButton("Add");
         newStudentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
+                    ApplicationMain a = new ApplicationMain();
+                    Connection conn = a.connect();
                     String queryNewStudent = "INSERT INTO students (first_name, last_name) VALUES (?,?)";
-                    PreparedStatement statementNewStudent = conn.prepareStatement(queryNewStudent);
+                    String queryNewCourse = "INSERT INTO course (course_name) VALUE (?)";
+                    String queryNewCourseImp= "INSERT INTO course_implementation (starts, ends, points) VALUES (?,?,?)";
+                    String queryNewCredit = "INSERT INTO credit (teacher, points, passed) VALUES (?,?,?)";
+                    String queryNewStudentDegree = "INSERT INTO student_degree (degree, started, completed) VALUES (?,?,?)";
+
                     String[] i = (String[]) formatInsert(newStudentText.getText());
-                    statementNewStudent.setString(1,i[0]);
-                    statementNewStudent.setString(2,i[1]);
-                    statementNewStudent.executeUpdate();
+
+                    switch (comboBox.getSelectedItem().toString()) {
+                        case "students":
+                            PreparedStatement statementNewStudent = conn.prepareStatement(queryNewStudent);
+
+                            //statementNewStudent.setString(1, comboBox.getSelectedItem().toString());
+                            statementNewStudent.setString(1,i[0]);
+                            statementNewStudent.setString(2,i[1]);
+                            statementNewStudent.executeUpdate();
+                            break;
+                        case "course":
+                            PreparedStatement statementNewCourse = conn.prepareStatement(queryNewCourse);
+
+                            //statementNewCourse.setString(1, comboBox.getSelectedItem().toString());
+                            statementNewCourse.setString(1,i[0]);
+                            statementNewCourse.executeUpdate();
+                            break;
+                        case "course_implementation":
+                            PreparedStatement statementNewCourseImp = conn.prepareStatement(queryNewCourseImp);
+
+                            //statementNewCourseImp.setString(1, comboBox.getSelectedItem().toString());
+                            statementNewCourseImp.setString(1,i[0]);
+                            statementNewCourseImp.setString(2,i[1]);
+                            statementNewCourseImp.setString(3,i[2]);
+                            statementNewCourseImp.executeUpdate();
+                            break;
+                        case "credit":
+                            PreparedStatement statementNewCredit = conn.prepareStatement(queryNewCredit);
+
+                            //statementNewCredit.setString(1, comboBox.getSelectedItem().toString());
+                            statementNewCredit.setString(1,i[0]);
+                            statementNewCredit.setString(2,i[1]);
+                            statementNewCredit.setString(3,i[2]);
+                            statementNewCredit.executeUpdate();
+                            break;
+                        case "student_degree":
+                            PreparedStatement statementNewStudentDeg = conn.prepareStatement(queryNewStudentDegree);
+
+                            //statementNewStudentDeg.setString(1, comboBox.getSelectedItem().toString());
+                            statementNewStudentDeg.setString(1,i[0]);
+                            statementNewStudentDeg.setString(2,i[1]);
+                            statementNewStudentDeg.setString(3,i[2]);
+                            statementNewStudentDeg.executeUpdate();
+                            break;
+                    }
+
                     refreshTable();
                     createTable(Objects.requireNonNull(comboBox.getSelectedItem()).toString());
                 } catch (SQLException e) {
@@ -115,7 +206,7 @@ public class GraphicalSwing extends JFrame {
 
         buttonPanel.add(comboBox);
         buttonPanel.add(showButton);
-        buttonPanel.add(saveButton);
+        buttonPanel.add(delButton);
         newStudentPanel.add(newStudentText);
         buttonPanel.add(newStudentButton);
         mainFrame.setVisible(true);
@@ -160,28 +251,34 @@ public class GraphicalSwing extends JFrame {
     public void createInfoLabel(String tableName) {
         switch (tableName) {
             case "students":
-                infoLabel.setText("Enter firstname and lastname: ");
+                infoLabel.setText("For adding enter firstname and lastname. \n" +
+                        "If removing enter student_id of selected row.");
                 break;
             case "course":
-                infoLabel.setText("Enter a course name: ");
+                infoLabel.setText("Enter a course name. \n" +
+                        "If removing enter course_id of selected row.");
                 break;
             case "course_implementation":
-                infoLabel.setText("Enter start date, end-date and points: ");
+                infoLabel.setText("Enter start date, end-date and points. \n" +
+                        "If removing enter course_implementation_id of selected row.");
                 break;
             case "credit":
-                infoLabel.setText("Enter teacher, points and passed date: ");
+                infoLabel.setText("Enter teacher, points and passed date. \n" +
+                        "If removing enter credit_id of selected row.");
                 break;
             case "student_degree":
-                infoLabel.setText("Enter degree, started and completed: ");
+                infoLabel.setText("Enter degree, started and completed. \n" +
+                        "If removing enter student_degree_id of selected row");
                 break;
             default:
                 ErrorDialog n = new ErrorDialog("Invalid Option");
                 break;
         }
 
-        //JLabel infoLabel = new JLabel("Enter firstname and lastname", JLabel.CENTER);
         newStudentPanel.add(infoLabel);
         mainFrame.setVisible(true);
     }
+
+
 
 }

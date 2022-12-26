@@ -7,13 +7,15 @@ public class ApplicationMain {
     private Connection conn;
 
     public static void main(String[] args) {
-        // TODO: login system
         LoginSwing login = new LoginSwing();
     }
 
     public Connection connect() throws SQLException {
         conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/students_schema", "root", "password");
+        if(conn != null && conn.isClosed()) {
+            ErrorDialog n = new ErrorDialog("Setup a proper connection to the database.");
+        }
         return conn;
     }
 

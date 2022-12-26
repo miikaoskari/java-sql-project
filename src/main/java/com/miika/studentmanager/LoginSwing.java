@@ -10,8 +10,7 @@ import java.sql.SQLException;
 
 public class LoginSwing {
     private JFrame mainFrame;
-    private JPanel buttonPanel;
-    private JPanel textPanel;
+    private JPanel mainPanel;
 
     LoginSwing() {
         prepareGUI();
@@ -21,7 +20,7 @@ public class LoginSwing {
     private void prepareGUI() {
         mainFrame = new JFrame("Login Dialog");
         mainFrame.setSize(400,200);
-        mainFrame.setLayout(new BorderLayout());
+        mainFrame.setLayout(new CardLayout());
 
         mainFrame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent windowEvent) {
@@ -29,14 +28,10 @@ public class LoginSwing {
             }
         });
 
-        textPanel = new JPanel();
-        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.PAGE_AXIS));
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
 
-        buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
-
-        mainFrame.add(textPanel,BorderLayout.NORTH);
-        mainFrame.add(buttonPanel,BorderLayout.SOUTH);
+        mainFrame.add(mainPanel);
         mainFrame.setVisible(true);
     }
 
@@ -73,12 +68,12 @@ public class LoginSwing {
             }
         });
 
-        textPanel.add(usernameLabel);
-        textPanel.add(usernameTxt);
-        textPanel.add(passwordLabel);
-        textPanel.add(passwordTxt);
-        buttonPanel.add(loginButton);
-        buttonPanel.add(signupButton);
+        mainPanel.add(usernameLabel);
+        mainPanel.add(usernameTxt);
+        mainPanel.add(passwordLabel);
+        mainPanel.add(passwordTxt);
+        mainPanel.add(loginButton);
+        mainPanel.add(signupButton);
         mainFrame.setVisible(true);
     }
 
