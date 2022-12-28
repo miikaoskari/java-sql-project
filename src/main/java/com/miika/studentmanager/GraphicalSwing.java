@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.*;
 import java.sql.*;
 import java.util.Objects;
 
@@ -15,18 +16,17 @@ public class GraphicalSwing extends JFrame {
     private JPanel tablePanel;
     private JPanel buttonPanel;
     private JPanel graphPanel;
-    private JPanel newStudentPanel;
+    private JPanel newRowPanel;
     JLabel infoLabel = new JLabel("", JLabel.CENTER);
     DefaultTableModel tableModel = new DefaultTableModel();
     JTable table = new JTable(tableModel);
     JScrollPane tableScroll = (new JScrollPane(table));
-    JTextField newStudentText = new JTextField();
+    JTextField newInfoText = new JTextField();
 
 
     GraphicalSwing() throws SQLException {
         prepareGUI();
         prepareElements();
-        createTable("students");
     }
 
     private void prepareGUI() {
@@ -49,13 +49,13 @@ public class GraphicalSwing extends JFrame {
         graphPanel = new JPanel();
         graphPanel.setLayout(new BoxLayout(graphPanel, BoxLayout.PAGE_AXIS));
 
-        newStudentPanel = new JPanel();
-        newStudentPanel.setLayout(new BoxLayout(newStudentPanel, BoxLayout.PAGE_AXIS));
+        newRowPanel = new JPanel();
+        newRowPanel.setLayout(new BoxLayout(newRowPanel, BoxLayout.PAGE_AXIS));
 
         mainFrame.add(tablePanel);
         mainFrame.add(buttonPanel);
         mainFrame.add(graphPanel);
-        mainFrame.add(newStudentPanel);
+        mainFrame.add(newRowPanel);
         mainFrame.setVisible(true);
     }
 
@@ -95,32 +95,32 @@ public class GraphicalSwing extends JFrame {
                     String queryDelStudentDeg = "DELETE FROM student_degree WHERE student_degree_id=?";
 
 
-                    String[] i = (String[]) formatInsert(newStudentText.getText());
+                    String[] i = (String[]) formatInsert(newInfoText.getText());
 
                     switch (comboBox.getSelectedItem().toString()) {
                         case "students":
                             PreparedStatement statementDelStudent = conn.prepareStatement(queryDelStudent);
-                            statementDelStudent.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelStudent.setInt(1, Integer.parseInt(newInfoText.getText()));
                             statementDelStudent.executeUpdate();
                             break;
                         case "course":
                             PreparedStatement statementDelCourse = conn.prepareStatement(queryDelCourse);
-                            statementDelCourse.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelCourse.setInt(1, Integer.parseInt(newInfoText.getText()));
                             statementDelCourse.executeUpdate();
                             break;
                         case "course_implementation":
                             PreparedStatement statementDelCourseImp = conn.prepareStatement(queryDelCourseImp);
-                            statementDelCourseImp.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelCourseImp.setInt(1, Integer.parseInt(newInfoText.getText()));
                             statementDelCourseImp.executeUpdate();
                             break;
                         case "credit":
                             PreparedStatement statementDelCredit = conn.prepareStatement(queryDelCredit);
-                            statementDelCredit.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelCredit.setInt(1, Integer.parseInt(newInfoText.getText()));
                             statementDelCredit.executeUpdate();
                             break;
                         case "student_degree":
                             PreparedStatement statementDelStudentDeg = conn.prepareStatement(queryDelStudentDeg);
-                            statementDelStudentDeg.setInt(1, Integer.parseInt(newStudentText.getText()));
+                            statementDelStudentDeg.setInt(1, Integer.parseInt(newInfoText.getText()));
                             statementDelStudentDeg.executeUpdate();
                             break;
                     }
@@ -149,7 +149,7 @@ public class GraphicalSwing extends JFrame {
                     String queryNewCredit = "INSERT INTO credit (teacher, points, passed) VALUES (?,?,?)";
                     String queryNewStudentDegree = "INSERT INTO student_degree (degree, started, completed) VALUES (?,?,?)";
 
-                    String[] i = (String[]) formatInsert(newStudentText.getText());
+                    String[] i = (String[]) formatInsert(newInfoText.getText());
 
                     switch (comboBox.getSelectedItem().toString()) {
                         case "students":
@@ -204,10 +204,40 @@ public class GraphicalSwing extends JFrame {
             }
         });
 
+        JButton printInfo = new JButton("Export");
+        printInfo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                int returnVal = fileChooser.showSaveDialog(table);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    try {
+                        FileWriter fw = new FileWriter(file);
+                        for (int i = 0; i < table.getRowCount(); i++) {
+                            for (int j = 0; j < table.getColumnCount(); j++) {
+                                fw.write(table.getValueAt(i, j).toString());
+                                if (j < table.getColumnCount() - 1) {
+                                    fw.write(",");
+                                }
+                            }
+                            fw.write("\n");
+                        }
+                        fw.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+
+            }
+        });
+
         buttonPanel.add(comboBox);
         buttonPanel.add(showButton);
         buttonPanel.add(delButton);
-        newStudentPanel.add(newStudentText);
+        buttonPanel.add(printInfo);
+        //newRowPanel.add(newInfoText);
         buttonPanel.add(newStudentButton);
         mainFrame.setVisible(true);
     }
@@ -238,6 +268,7 @@ public class GraphicalSwing extends JFrame {
             tableModel.addRow(rowData);
         }
 
+        newRowPanel.add(newInfoText);
         tablePanel.add(tableScroll);
         mainFrame.setVisible(true);
     }
@@ -275,7 +306,7 @@ public class GraphicalSwing extends JFrame {
                 break;
         }
 
-        newStudentPanel.add(infoLabel);
+        newRowPanel.add(infoLabel);
         mainFrame.setVisible(true);
     }
 
